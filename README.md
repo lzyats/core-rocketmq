@@ -12,3 +12,7 @@ docker-compose up -d
 ```
 lower_case_table_names=1
 ```
+> 5、impush1.0构建方法
+```
+docker build -t impush:1.0 .
+```
