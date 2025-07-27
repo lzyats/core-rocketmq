@@ -14,7 +14,7 @@ services:
       MINIO_VOLUMES: /data              # 数据卷路径
       MINIO_CONSOLE_ADDRESS: ":19001"    # 控制台地址配置
     volumes:
-      - minio_data:/data                # 挂载数据卷
+      - ./minio_data:/data                # 挂载数据卷
     command: server /data --console-address ":19001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:19000/minio/health/live"]

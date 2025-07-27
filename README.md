@@ -8,3 +8,7 @@
 ```
 docker-compose up -d
 ```
+> 4、数据库兼容设置
+```
+lower_case_table_names=1
+```
