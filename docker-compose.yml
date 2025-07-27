@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # RocketMQ NameServer
+  nameserver:
+    image: apache/rocketmq:5.1.4
+    container_name: rmqnameserver 
+    command: sh mqnamesrv
+    ports:
+      - "9876:9876"
+    volumes:
+      - ./data/namesrv/logs:/home/rocketmq/rocketmq-5.1.4/logs
+      - ./data/namesrv/store:/home/rocketmq/rocketmq-5.1.4/store
+    environment:
+      - JAVA_OPT_EXT=-Xms1g -Xmx1g -Xmn512m
+    restart: unless-stopped
+    networks:
+      - rmq
+
+  # RocketMQ Broker
+  broker:
+    image: apache/rocketmq:5.1.4
+    container_name: rmqbroker
+    command: sh mqbroker -n nameserver:9876 -c /home/rocketmq/rocketmq-5.1.4/conf/broker.conf
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    volumes:
+      - ./data/broker/logs:/home/rocketmq/rocketmq-5.1.4/logs 
+      - ./data/broker/store:/home/rocketmq/rocketmq-5.1.4/store 
+      - ./conf/broker.conf:/home/rocketmq/rocketmq-5.1.4/conf/broker.conf
+      - ./conf/plain_acl.yml:/home/rocketmq/rocketmq-5.1.4/conf/plain_acl.yml
+    environment:
+      - JAVA_OPT=-Xms1g -Xmx1g
+      - NAMESRV_ADDR=127.0.0.1:9876
+    depends_on:
+      - nameserver 
+    restart: unless-stopped
+    networks:
+      - rmq
+
+  # RocketMQ Dashboard (可选)
+  dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: rmqdashboard 
+    ports:
+      - "8099:8080"
+    #volumes:
+      # 数据目录映射, user.properties需要放在data目录下
+      #- /apps/rocketmq-dashboard/data:/home/rocketmq/data
+    environment:
+      - NAMESRV_ADDR=110.42.56.25:9876
+      - ACL_ENABLE=true  # 必须与Broker一致 
+      - ACCESS_KEY=admin123
+      - SECRET_KEY=MySecretKey@2025 
+      - LOGIN_REQUIRED=true  # 5.x新增登录拦截 
+      # 开启登录认证
+      #- ROCKETMQ_CONFIG_LOGIN_REQUIRED=true
+    depends_on:
+      - nameserver 
+    restart: unless-stopped
+    networks:
+      - rmq
+
+networks:
+  rmq:
+    driver: bridge 
