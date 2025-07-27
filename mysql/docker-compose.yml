@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:5.7  # 官方 MySQL 5.7 镜像 
+    container_name: mysql57  # 自定义容器名 
+    environment:
+      MYSQL_ROOT_PASSWORD: 35446c555b585d37  # 必填：root用户密码
+      MYSQL_DATABASE: app_db  # 可选：初始数据库名
+      MYSQL_USER: app_user  # 可选：初始普通用户
+      MYSQL_PASSWORD: 35446c555b585d37  # 可选：普通用户密码
+    ports:
+      - "3306:3306"  # 宿主机端口:容器端口（按需调整）
+    volumes:
+      - ./mysql_data:/var/lib/mysql  # 持久化数据卷 
+      - ./mysql_logs:/var/log/mysql
+      - ./my.cnf:/etc/mysql/conf.d/custom.cnf   # 挂载配置文件（可选）
+    restart: unless-stopped  # 自动重启策略 
+volumes:
+  mysql_data:  # 声明数据卷（自动创建）
