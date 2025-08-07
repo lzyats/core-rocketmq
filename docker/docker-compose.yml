@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  registry:
+    image: registry:2
+    container_name: my-private-registry
+    restart: always  # 容器退出时自动重启
+    ports:
+      - "5000:5000"  # 映射端口（宿主机端口:容器端口）
+    volumes:
+      - registry-data:/var/lib/registry  # 持久化仓库数据（使用命名卷）
+    networks:
+      - registry-net  # 自定义网络，隔离容器
+
+volumes:
+  registry-data:  # 命名卷，用于存储镜像数据（自动创建）
+
+networks:
+  registry-net:  # 自定义网络
+    driver: bridge

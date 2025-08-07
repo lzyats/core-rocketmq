@@ -1,0 +1,71 @@
+version: '3.8'
+services:
+  namesrv:
+    image: apache/rocketmq:4.9.0
+    container_name: rmqnamesrv 
+    ports:
+      - "9876:9876"
+    volumes:
+      - ./namesrv/logs:/root/logs
+      - ./namesrv/store:/root/store
+    command: sh mqnamesrv
+    restart: unless-stopped
+    networks:
+      - rmq
+
+  broker-master:
+    image: apache/rocketmq:4.9.0
+    container_name: rmqbroker-master 
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+    volumes:
+      - ./broker-master/logs:/root/logs 
+      - ./broker-master/store:/root/store 
+      - ./broker-m.conf:/home/rocketmq/rocketmq-4.9.0/conf/broker.conf 
+    environment:
+      - JAVA_OPT=-Xms1g -Xmx1g
+    depends_on:
+      - namesrv 
+    command: sh mqbroker -n namesrv:9876 
+    restart: unless-stopped
+    networks:
+      - rmq
+ 
+  broker-slave:
+    image: apache/rocketmq:4.9.0 
+    container_name: rmqbroker-slave 
+    ports:
+      - "10912:10911"
+      - "10910:10909"
+    volumes:
+      - ./broker-slave/logs:/root/logs 
+      - ./broker-slave/store:/root/store 
+      - ./broker-s.conf:/home/rocketmq/rocketmq-4.9.0/conf/broker.conf 
+    environment:
+      - JAVA_OPT=-Xms1g -Xmx1g
+    depends_on:
+      - namesrv 
+    command: sh mqbroker  -n namesrv:9876 
+    restart: unless-stopped
+    networks:
+      - rmq
+
+  dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: rmqdashboard 
+    ports:
+      - "8099:8080"
+    environment:
+      - NAMESRV_ADDR=172.20.0.1:9876
+      - ACL_ENABLE=true  # 必须与Broker一致 
+      - ACCESS_KEY=admin123
+      - SECRET_KEY=MySecretKey@2025 
+    depends_on:
+      - namesrv 
+    restart: unless-stopped
+    networks:
+      - rmq
+networks:
+  rmq:
+    driver: bridge
